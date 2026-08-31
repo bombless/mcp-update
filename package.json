@@ -1,0 +1,17 @@
+{
+  "name": "mcp-update",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "server": "node dist/server.js",
+    "agent": "node dist/agent-updater.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.2",
+    "typescript": "^5.9.2"
+  }
+}
