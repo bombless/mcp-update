@@ -1,6 +1,9 @@
 import net from 'node:net';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { startProcess, stopProcess, updateCheckout, latestGithubSha, REPO, BRANCH, npmCommand } from './common.js';
 
+const execFileAsync = promisify(execFile);
 if (process.platform !== 'win32') throw new Error('agent updater must run on Windows');
 
 const repoDir = process.env.AGENT_REPO_DIR ?? 'C:\\mcp\\chatgpt-mcp';
@@ -66,10 +69,8 @@ function startPipeServer() {
 async function autoCheck() {
   try {
     const latest = await latestGithubSha();
-    const current = await new Promise<string>((resolve, reject) => {
-      const child = require('node:child_process');
-      child.execFile('git', ['rev-parse', 'HEAD'], { cwd: repoDir }, (error: Error | null, stdout: string) => error ? reject(error) : resolve(stdout.trim().toLowerCase()));
-    });
+    const { stdout } = await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: repoDir });
+    const current = stdout.trim().toLowerCase();
     if (latest !== current) {
       console.log(`[update] agent is behind: ${current} -> ${latest}`);
       await doUpdate();
