@@ -1,13 +1,11 @@
 import net from 'node:net';
 import fs from 'node:fs/promises';
-import { existsSync } from 'node:fs';
 import { startProcess, stopProcess, updateCheckout, REPO, BRANCH, npmCommand } from './common.js';
 
 if (process.platform === 'win32') throw new Error('server supervisor must run on Linux/Unix');
 
 const repoDir = process.env.MCP_REPO_DIR ?? '/opt/chatgpt-mcp';
 const socketPath = process.env.MCP_UPDATE_SOCKET ?? '/run/mcp-update.sock';
-const port = Number(process.env.MCP_PORT ?? 8787);
 let mcpProcess: ReturnType<typeof startProcess> | undefined;
 let updating = false;
 let queuedSha: string | undefined;
@@ -68,7 +66,8 @@ async function main() {
       }
     });
   });
-  server.listen(socketPath, () => {
+  server.listen(socketPath, async () => {
+    await fs.chmod(socketPath, 0o600);
     console.log(`[mcp-update] Unix socket: ${socketPath}`);
     console.log(`[mcp-update] supervising ${repoDir}`);
     startMcp();
