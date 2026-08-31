@@ -21,7 +21,7 @@ mcp-update server
     |
     +-- stop MCP
     +-- git fetch/reset to verified SHA
-    +-- npm ci
+    +-- npm install
     +-- npm run build
     +-- start MCP
 
@@ -43,12 +43,12 @@ Install the supervisor separately from the MCP checkout:
 ```bash
 git clone https://github.com/bombless/mcp-update.git /opt/mcp-update
 cd /opt/mcp-update
-npm ci
+npm install
 npm run build
 
 git clone https://github.com/bombless/chatgpt-mcp.git /opt/chatgpt-mcp
 cd /opt/chatgpt-mcp
-npm ci
+npm install
 npm run build
 ```
 
@@ -64,30 +64,12 @@ The supervisor owns `/run/mcp-update.sock`, starts `npm start` in `/opt/chatgpt-
 
 ### systemd example
 
-Create `/etc/systemd/system/mcp-update.service`:
-
-```ini
-[Unit]
-Description=MCP update supervisor
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-WorkingDirectory=/opt/mcp-update
-Environment=MCP_REPO_DIR=/opt/chatgpt-mcp
-Environment=MCP_UPDATE_SOCKET=/run/mcp-update.sock
-ExecStart=/usr/bin/node /opt/mcp-update/dist/server.js
-Restart=always
-RestartSec=2
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Then:
+The repository includes `deploy/mcp-update.service`. It loads MCP environment variables from `/etc/mcp-update/mcp.env`, so put the existing MCP secrets there, including `AGENT_TOKEN`, `PUBLIC_URL`, and the independent `UPDATE_WEBHOOK_TOKEN`.
 
 ```bash
+sudo install -d -m 700 /etc/mcp-update
+sudoedit /etc/mcp-update/mcp.env
+sudo install -m 644 deploy/mcp-update.service /etc/systemd/system/mcp-update.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now mcp-update
 ```
@@ -100,7 +82,7 @@ Clone both repositories, build `mcp-update`, and configure the supervisor:
 
 ```powershell
 cd C:\mcp\mcp-update
-npm ci
+npm install
 npm run build
 
 $env:AGENT_REPO_DIR='C:\mcp\chatgpt-mcp'
@@ -108,7 +90,7 @@ $env:MCP_UPDATE_PIPE='mcp-update-agent'
 node dist\agent-updater.js
 ```
 
-The supervisor owns `\\.\pipe\mcp-update-agent` and starts `npm run agent` in the MCP checkout. It periodically checks the public `main` SHA (10 minutes by default). A local agent can also send `{"type":"update"}` over the named pipe to request an immediate check/update.
+The supervisor owns `\\.\pipe\mcp-update-agent` and starts `npm run agent` in the MCP checkout. The agent periodically sends `{"type":"update"}` through that named pipe (10 minutes by default), while the updater also checks periodically. The updater only performs work when GitHub reports a newer `main` commit.
 
 ## Update protocol
 
@@ -130,7 +112,7 @@ The supervisor performs a hard checkout:
 git fetch --prune origin main
 git reset --hard <verified SHA>
 git clean -fd
-npm ci
+npm install
 npm run build
 ```
 
