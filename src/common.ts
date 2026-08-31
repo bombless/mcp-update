@@ -23,7 +23,7 @@ export async function updateCheckout(repoDir: string, expectedSha: string) {
   await run('git', ['fetch', '--prune', 'origin', BRANCH], repoDir);
   await run('git', ['reset', '--hard', expectedSha], repoDir);
   await run('git', ['clean', '-fd'], repoDir);
-  await run(npmCommand(), ['ci'], repoDir);
+  await run(npmCommand(), ['install'], repoDir);
   await run(npmCommand(), ['run', 'build'], repoDir);
 }
 
