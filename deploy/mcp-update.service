@@ -6,6 +6,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=/opt/mcp-update
+EnvironmentFile=-/etc/mcp-update/mcp.env
 Environment=MCP_REPO_DIR=/opt/chatgpt-mcp
 Environment=MCP_UPDATE_SOCKET=/run/mcp-update.sock
 ExecStart=/usr/bin/node /opt/mcp-update/dist/server.js
