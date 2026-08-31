@@ -1,0 +1,16 @@
+[Unit]
+Description=mcp-update supervisor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/mcp-update
+Environment=MCP_REPO_DIR=/opt/chatgpt-mcp
+Environment=MCP_UPDATE_SOCKET=/run/mcp-update.sock
+ExecStart=/usr/bin/node /opt/mcp-update/dist/server.js
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
